@@ -80,7 +80,16 @@ draw = (ctx, circles, canvasDimensions) => {
 let oldIdealAngleDiff = 0;
 
 updateCircles = (circles) => {
-  // TODO: update angles so they point towards the mouse
+  // update angles so they point towards the mouse
+  circles.forEach((circle, i) => {
+    const yDiff = MOUSE_POS.y - circle.y;
+    const xDiff = MOUSE_POS.x - circle.x;
+    const distance = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
+    const idealAngle = Math.atan(yDiff / xDiff);
+    let idealAngleDiff = idealAngle - circle.angle;
+    const initialAngleDiff = circle.initialAngle - circle.angle;
+    circle.angle = circle.angle + idealAngleDiff;
+  });
   return circles;
 }
 
