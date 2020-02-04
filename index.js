@@ -2,9 +2,10 @@ document.addEventListener('DOMContentLoaded', function(){
   main();
 });
 
-const GRID_SIZE = {x: 8, y: 8};
+const GRID_SIZE = {x: 10, y: 10};
 const MARGINS = {x: 60, y: 60};
 const DECAY_TIME = 0.8;
+const MOUSE_PULL = 1;
 const SHOW_METADATA = true;
 let MOUSE_POS = {x: null, y: null};
 
@@ -87,7 +88,7 @@ updateCircles = (circles) => {
   circles.forEach((circle, i) => {
     const yDiff = MOUSE_POS.y - circle.y;
     const xDiff = MOUSE_POS.x - circle.x;
-    // const distance = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
+    const distance = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
     
 
     // [x] calculate single valued ideal angle
@@ -109,7 +110,8 @@ updateCircles = (circles) => {
 
     let idealAngleDiff = circle.idealAngle - circle.angle;
     const initialAngleDiff = circle.initialAngle - circle.angle;
-    circle.angle = circle.angle +  0.2 * idealAngleDiff;
+    // TODO: some magic numbers in here
+    circle.angle = distance > 800 ? circle.angle : circle.angle + MOUSE_PULL * 0.9 * (1-Math.pow(distance/800, 1/8)) * idealAngleDiff;
     
     if (SHOW_METADATA) showMetadata(circle, previousIdealAngle, i);
   });
