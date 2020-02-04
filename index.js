@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function(){
 const GRID_SIZE = {x: 8, y: 8};
 const MARGINS = {x: 60, y: 60};
 const DECAY_TIME = 0.8;
+const SHOW_METADATA = true;
 let MOUSE_POS = {x: null, y: null};
 
 const CIRCLE_SHARED_PROPERTIES = {
@@ -42,6 +43,8 @@ class Circle {
     this.innerRadiusY = CIRCLE_SHARED_PROPERTIES.INNER_RADIUS_Y;
     this.initialAngle = 0;
     this.angle = this.initialAngle;
+    this.idealAngle = this.initialAngle;
+    this.idealAngleModifier = 0;
   }
 }
 
@@ -84,15 +87,45 @@ updateCircles = (circles) => {
   circles.forEach((circle, i) => {
     const yDiff = MOUSE_POS.y - circle.y;
     const xDiff = MOUSE_POS.x - circle.x;
-    const distance = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
-    const idealAngle = Math.atan(yDiff / xDiff);
-    let idealAngleDiff = idealAngle - circle.angle;
+    // const distance = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
+    
+
+    // [x] calculate single valued ideal angle
+    // [x] track previous single valued ideal angle
+    // [ ] if current is more than π smaller than previous, add π to angle modifier
+
+    const singleValuedIdealAngle = Math.atan(yDiff / xDiff);
+    const previousIdealAngle = circle.idealAngle;
+    circle.idealAngle = singleValuedIdealAngle + circle.idealAngleModifier + Math.PI/2
+
+    if (circle.idealAngle < (previousIdealAngle - 0.8*Math.PI)) {
+      circle.idealAngleModifier += Math.PI;
+      circle.idealAngle += Math.PI;
+    }
+    else if (circle.idealAngle > (previousIdealAngle + 0.8*Math.PI)) {
+      circle.idealAngleModifier -= Math.PI;
+      circle.idealAngle -= Math.PI;
+    }
+
+    let idealAngleDiff = circle.idealAngle - circle.angle;
     const initialAngleDiff = circle.initialAngle - circle.angle;
-    circle.angle = circle.angle + idealAngleDiff;
+    circle.angle = circle.angle +  0.2 * idealAngleDiff;
+    
+    if (SHOW_METADATA) showMetadata(circle, previousIdealAngle, i);
   });
   return circles;
 }
 
+showMetadata = (circle, previousIdealAngle, i) => {
+  if (i===0) {
+    document.getElementById("metadata").innerHTML = (
+      `angle: ${Math.round(circle.angle*100)/100}<br>
+      idealAngle: ${Math.round(circle.idealAngle*100)/100}<br>
+      previousIdealAngle: ${Math.round(previousIdealAngle*100)/100}<br>
+      idealAngleModifier: ${Math.round(circle.idealAngleModifier*100)/100}`
+    );
+  }
+}
 
 drawFrame = (ctx, circles, canvasDimensions) => {
   ctx.clearRect(0, 0, canvasDimensions.width, canvasDimensions.height);
