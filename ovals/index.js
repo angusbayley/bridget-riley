@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function(){
 const GRID_SIZE = {x: 10, y: 10};
 const MARGINS = {x: 60, y: 60};
 const DECAY_TIME = 0.8;
-const MOUSE_PULL = 1;
+const MOUSE_PULL = 1.2;
 const SHOW_METADATA = true;
 let MOUSE_POS = {x: null, y: null};
 
@@ -111,7 +111,7 @@ updateCircles = (circles) => {
     let idealAngleDiff = circle.idealAngle - circle.angle;
     const initialAngleDiff = circle.initialAngle - circle.angle;
     // TODO: some magic numbers in here
-    circle.angle = distance > 800 ? circle.angle : circle.angle + MOUSE_PULL * 0.9 * (1-Math.pow(distance/800, 1/8)) * idealAngleDiff;
+    circle.angle = distance > 700 ? circle.angle : circle.angle + MOUSE_PULL * 0.9 * (1-Math.pow(distance/700, 1/8)) * idealAngleDiff;
     
     if (SHOW_METADATA) showMetadata(circle, previousIdealAngle, i);
   });
