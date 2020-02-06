@@ -5,14 +5,14 @@ document.addEventListener('DOMContentLoaded', function(){
 const GRID_SIZE = {x: 10, y: 10};
 const MARGINS = {x: 60, y: 60};
 const DECAY_TIME = 0.8;
-const MOUSE_PULL = 1.2;
+const MOUSE_PULL = 0.1;
 const SHOW_METADATA = true;
 let MOUSE_POS = {x: null, y: null};
 
 const CIRCLE_SHARED_PROPERTIES = {
-  OUTER_RADIUS: 25,
-  INNER_RADIUS_X: 14,
-  INNER_RADIUS_Y: 19,
+  OUTER_RADIUS: 30,
+  INNER_RADIUS_X: 20,
+  INNER_RADIUS_Y: 26,
 }
 
 main = () => {
@@ -60,14 +60,18 @@ calculateCoord = (canvasDimensions, i, j) => {
     y: reducedCanvasDimensions.y/(GRID_SIZE.y-1),
   };
 
-  return { x: MARGINS.x + i * unitSize.x, y: MARGINS.y + j * unitSize.y};
+  return {
+    x: (j%2 === 0 ? MARGINS.x + i * unitSize.x : MARGINS.x + i * unitSize.x + unitSize.x/2),
+    y: MARGINS.y + j * unitSize.y};
 }
 
 makeInitialCircleData = (canvasDimensions) => {
   let data = [];
-  for (let i=0; i<GRID_SIZE.y; i++) {
-    for (let j=0; j<GRID_SIZE.x; j++) {
-      data.push(new Circle(calculateCoord(canvasDimensions, i, j)));
+  for (let i=0; i<GRID_SIZE.x; i++) {
+    for (let j=0; j<GRID_SIZE.y; j++) {
+      if (j%2 === 0 || i < GRID_SIZE.x - 1) {
+        data.push(new Circle(calculateCoord(canvasDimensions, i, j)));
+      }
     }
   }
   return data;
@@ -111,7 +115,7 @@ updateCircles = (circles) => {
     let idealAngleDiff = circle.idealAngle - circle.angle;
     const initialAngleDiff = circle.initialAngle - circle.angle;
     // TODO: some magic numbers in here
-    circle.angle = distance > 700 ? circle.angle : circle.angle + MOUSE_PULL * 0.9 * (1-Math.pow(distance/700, 1/8)) * idealAngleDiff;
+    circle.angle = distance > 700 ? circle.angle : circle.angle + MOUSE_PULL * 0.9 * (1-Math.pow(distance/700, 1/1)) * idealAngleDiff;
     
     if (SHOW_METADATA) showMetadata(circle, previousIdealAngle, i);
   });
