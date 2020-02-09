@@ -8,8 +8,8 @@ const INITIAL_RADIUS = 11;
 const ANGLE_SHIFT = Math.PI/13;
 const ANGLE_RESOLUTION = Math.PI/60;
 const SPIRAL_SCALE = 20;
-const INITIAL_SPIRAL_SPREAD = 0.6;
-const DESIRED_SPIRAL_SPREAD = 0.5;
+const INITIAL_SPIRAL_SPREAD = 0.35;
+const DESIRED_SPIRAL_SPREAD = 0.7;
 let spiralSpread = INITIAL_SPIRAL_SPREAD;
 let circles;
 
@@ -19,7 +19,7 @@ main = () => {
   const canvasDimensions = { x: c.width, y: c.height };
   const centerPoint = {x: canvasDimensions.x/2, y: canvasDimensions.y/2}
   circles = makeInitialCircleData(centerPoint);
-  draw(ctx, circles, canvasDimensions, centerPoint);
+  draw(ctx, circles, canvasDimensions, centerPoint, 0);
 }
 
 class Circle {
@@ -63,18 +63,21 @@ makeInitialCircleData = (centerPoint) => {
   return data;
 }
 
-draw = (ctx, circles, canvasDimensions, centerPoint) => {
+draw = (ctx, circles, canvasDimensions, centerPoint, frameNo) => {
   setTimeout(() => {
-    circles = updateCircles(circles, centerPoint);
+    frameNo++;
+    circles = updateCircles(circles, centerPoint, frameNo);
     drawFrame(ctx, circles, canvasDimensions);
-    draw(ctx, circles, canvasDimensions, centerPoint);
+    draw(ctx, circles, canvasDimensions, centerPoint, frameNo);
   }, 35);
 }
 
-updateCircles = (circles, centerPoint) => {
-  // TODO
+updateCircles = (circles, centerPoint, frameNo) => {
   spiralSpread += 0.01 * (DESIRED_SPIRAL_SPREAD - spiralSpread);
-  circles.forEach((circle) => {
+  circles.forEach((circle, i) => {
+    circle.angleShift += 0.01
+    circle.spiralAngle += 0.02 * Math.cos(0.02 * frameNo);
+    circle.radius += 0.005 * circle.radius;
     circle.setCoords(centerPoint);
   })
   return circles;
