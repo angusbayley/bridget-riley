@@ -4,12 +4,19 @@ document.addEventListener('DOMContentLoaded', function(){
 
 const N_CIRCLES = 10;
 let MOUSE_POS = {x: null, y: null};
-const INITIAL_RADIUS = 11;
+const INITIAL_RADIUS = 90;
+const DESIRED_RADIUS = 11;
+const INITIAL_OPACITY = 0;
+const DESIRED_OPACITY = 1;
+const INITIAL_ROTATIONAL_VELOCITY = 5;
+const DESIRED_ROTATIONAL_VELOCITY = 0.5;
 const ANGLE_SHIFT = Math.PI/13;
 const ANGLE_RESOLUTION = Math.PI/60;
-const SPIRAL_SCALE = 20;
-const INITIAL_SPIRAL_SPREAD = 0.35;
-const DESIRED_SPIRAL_SPREAD = 0.7;
+const SPIRAL_SCALE = 10;
+const INITIAL_SPIRAL_SPREAD = 0.1;
+const DESIRED_SPIRAL_SPREAD = 0.55;
+let rotationalVelocity = INITIAL_ROTATIONAL_VELOCITY;
+let radiusScaleFactor = INITIAL_RADIUS;
 let spiralSpread = INITIAL_SPIRAL_SPREAD;
 let circles;
 
@@ -24,10 +31,12 @@ main = () => {
 
 class Circle {
   constructor(spiralAngle, radius, angleShift, centerPoint, inverse) {
+    this.baseRadius = radius;
     this.radius = radius;
     this.angleShift = angleShift;
     this.inverse = inverse;
     this.spiralAngle = spiralAngle;
+    this.opacity = INITIAL_OPACITY;
     this.setCoords(centerPoint);
   }
 
@@ -43,6 +52,10 @@ class Circle {
       y: Math.cos(angle) * this.radius + this.y,
     }
   }
+
+  calculateRadius = () => {
+    this.radius = this.baseRadius * radiusScaleFactor;
+  }
 }
 
 makeInitialCircleData = (centerPoint) => {
@@ -53,7 +66,7 @@ makeInitialCircleData = (centerPoint) => {
     data.push(
       new Circle(
         i * Math.PI * 2/N_CIRCLES,
-        Math.pow(i, 2.2)*INITIAL_RADIUS,
+        Math.pow(i, 2.2),
         i%2 === 0 ? 0 : ANGLE_SHIFT,
         centerPoint,
         i%2 === 0
@@ -75,10 +88,16 @@ draw = (ctx, circles, canvasDimensions, centerPoint, frameNo) => {
 updateCircles = (circles, centerPoint, frameNo) => {
   spiralSpread += 0.01 * (DESIRED_SPIRAL_SPREAD - spiralSpread);
   circles.forEach((circle, i) => {
-    circle.angleShift += 0.01
+    rotationalVelocity += 0.004 * (DESIRED_ROTATIONAL_VELOCITY - rotationalVelocity)
+    circle.angleShift += 0.01 * rotationalVelocity
     circle.spiralAngle += 0.02 * Math.cos(0.02 * frameNo);
-    circle.radius += 0.005 * circle.radius;
+    radiusScaleFactor = radiusScaleFactor + 0.01 * (DESIRED_RADIUS - radiusScaleFactor);
+    circle.calculateRadius();
+    circle.opacity += 0.05 * (DESIRED_OPACITY - circle.opacity);
     circle.setCoords(centerPoint);
+    // if (i === 1) {
+    //   console.log(circle)
+    // }
   })
   return circles;
 }
@@ -94,7 +113,7 @@ drawFrame = (ctx, circles, canvasDimensions) => {
 
 drawCircleConnectors = (ctx, circle, nextCircle) => {
   ctx.strokeStyle = "black";
-  ctx.fillStyle = "black";
+  ctx.fillStyle = `rgb(0, 0, 0, ${circle.opacity})`;
 
   for (var angle=(circle.inverse? ANGLE_RESOLUTION: 0); angle<2*Math.PI; angle+=ANGLE_RESOLUTION*2) {
     ctx.beginPath();
