@@ -4,20 +4,26 @@ document.addEventListener('DOMContentLoaded', function(){
 
 const N_CIRCLES = 10;
 let MOUSE_POS = {x: null, y: null};
-const INITIAL_RADIUS = 90;
-const DESIRED_RADIUS = 11;
+const INITIAL_RADIUS = 6;
+const FINAL_RADIUS = 13;
 const INITIAL_OPACITY = 0;
-const DESIRED_OPACITY = 1;
-const INITIAL_ROTATIONAL_VELOCITY = 5;
-const DESIRED_ROTATIONAL_VELOCITY = 0.5;
+const FINAL_OPACITY = 1;
+const INITIAL_ROTATIONAL_VELOCITY = 7;
+const FINAL_ROTATIONAL_VELOCITY = 0.5;
 const ANGLE_SHIFT = Math.PI/13;
 const ANGLE_RESOLUTION = Math.PI/60;
 const SPIRAL_SCALE = 10;
 const INITIAL_SPIRAL_SPREAD = 0.1;
-const DESIRED_SPIRAL_SPREAD = 0.55;
+const FINAL_SPIRAL_SPREAD = 0.55;
+const SPIRAL_WARP_RATE = 0.01;
+const SPIRAL_WARP_AMOUNT = 0.01;
+const SPIRAL_ROTATION = 1;
+const CIRCLE_SIZE_RATIO = 2.1;
+const INITIAL_DELAY = 500; // ms
 let rotationalVelocity = INITIAL_ROTATIONAL_VELOCITY;
 let radiusScaleFactor = INITIAL_RADIUS;
 let spiralSpread = INITIAL_SPIRAL_SPREAD;
+let spiralRotationalOffset = 0;
 let circles;
 
 main = () => {
@@ -26,14 +32,16 @@ main = () => {
   const canvasDimensions = { x: c.width, y: c.height };
   const centerPoint = {x: canvasDimensions.x/2, y: canvasDimensions.y/2}
   circles = makeInitialCircleData(centerPoint);
-  draw(ctx, circles, canvasDimensions, centerPoint, 0);
+  setTimeout(() => {
+    draw(ctx, circles, canvasDimensions, centerPoint, 0);  
+  }, INITIAL_DELAY);
 }
 
 class Circle {
-  constructor(spiralAngle, radius, angleShift, centerPoint, inverse) {
+  constructor(spiralAngle, radius, radialShift, centerPoint, inverse, initialOpacity) {
     this.baseRadius = radius;
     this.radius = radius;
-    this.angleShift = angleShift;
+    this.radialShift = radialShift;
     this.inverse = inverse;
     this.spiralAngle = spiralAngle;
     this.opacity = INITIAL_OPACITY;
@@ -46,7 +54,7 @@ class Circle {
   }
 
   getEdgeCoordsForAngle = (angle) => {
-    angle += this.angleShift;
+    angle += this.radialShift;
     return {
       x: Math.sin(angle) * this.radius + this.x,
       y: Math.cos(angle) * this.radius + this.y,
@@ -66,10 +74,11 @@ makeInitialCircleData = (centerPoint) => {
     data.push(
       new Circle(
         i * Math.PI * 2/N_CIRCLES,
-        Math.pow(i, 2.2),
+        Math.pow(i, CIRCLE_SIZE_RATIO),
         i%2 === 0 ? 0 : ANGLE_SHIFT,
         centerPoint,
-        i%2 === 0
+        i%2 === 0,
+        (N_CIRCLES-i)/(2*N_CIRCLES)
       )
     );
   }
@@ -86,18 +95,16 @@ draw = (ctx, circles, canvasDimensions, centerPoint, frameNo) => {
 }
 
 updateCircles = (circles, centerPoint, frameNo) => {
-  spiralSpread += 0.01 * (DESIRED_SPIRAL_SPREAD - spiralSpread);
+  spiralSpread += 0.01 * (FINAL_SPIRAL_SPREAD - spiralSpread);
+  spiralRotationalOffset += SPIRAL_ROTATION * 0.001;
   circles.forEach((circle, i) => {
-    rotationalVelocity += 0.004 * (DESIRED_ROTATIONAL_VELOCITY - rotationalVelocity)
-    circle.angleShift += 0.01 * rotationalVelocity
-    circle.spiralAngle += 0.02 * Math.cos(0.02 * frameNo);
-    radiusScaleFactor = radiusScaleFactor + 0.01 * (DESIRED_RADIUS - radiusScaleFactor);
+    rotationalVelocity += 0.01 * (FINAL_ROTATIONAL_VELOCITY - rotationalVelocity)
+    circle.radialShift += 0.01 * rotationalVelocity
+    circle.spiralAngle += SPIRAL_WARP_AMOUNT * Math.cos(SPIRAL_WARP_RATE * frameNo + Math.PI/4);
+    radiusScaleFactor = radiusScaleFactor + 0.01 * (FINAL_RADIUS - radiusScaleFactor);
     circle.calculateRadius();
-    circle.opacity += 0.05 * (DESIRED_OPACITY - circle.opacity);
+    circle.opacity += 0.05 * (FINAL_OPACITY - circle.opacity);
     circle.setCoords(centerPoint);
-    // if (i === 1) {
-    //   console.log(circle)
-    // }
   })
   return circles;
 }
@@ -112,10 +119,9 @@ drawFrame = (ctx, circles, canvasDimensions) => {
 }
 
 drawCircleConnectors = (ctx, circle, nextCircle) => {
-  ctx.strokeStyle = "black";
   ctx.fillStyle = `rgb(0, 0, 0, ${circle.opacity})`;
 
-  for (var angle=(circle.inverse? ANGLE_RESOLUTION: 0); angle<2*Math.PI; angle+=ANGLE_RESOLUTION*2) {
+  for (let angle=(circle.inverse ? ANGLE_RESOLUTION : ANGLE_RESOLUTION*2); angle<2*Math.PI; angle+=ANGLE_RESOLUTION*2) {
     ctx.beginPath();
     coords0 = circle.getEdgeCoordsForAngle(angle);
     ctx.moveTo(coords0.x, coords0.y);
