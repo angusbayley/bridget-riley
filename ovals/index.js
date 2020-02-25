@@ -3,16 +3,17 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 const GRID_SIZE = {x: 10, y: 10};
-const MARGINS = {x: 60, y: 60};
+const MARGINS = {x: 120, y: 120};
 const DECAY_TIME = 0.8;
-const MOUSE_PULL = 0.1;
-const SHOW_METADATA = true;
+const MOUSE_PULL = 0.5;
+const PULL_RADIUS = 2800;
+const SHOW_METADATA = false;
 let MOUSE_POS = {x: null, y: null};
 
 const CIRCLE_SHARED_PROPERTIES = {
-  OUTER_RADIUS: 30,
-  INNER_RADIUS_X: 20,
-  INNER_RADIUS_Y: 26,
+  OUTER_RADIUS: 60,
+  INNER_RADIUS_X: 40,
+  INNER_RADIUS_Y: 52,
 }
 
 main = () => {
@@ -115,7 +116,7 @@ updateCircles = (circles) => {
     let idealAngleDiff = circle.idealAngle - circle.angle;
     const initialAngleDiff = circle.initialAngle - circle.angle;
     // TODO: some magic numbers in here
-    circle.angle = distance > 700 ? circle.angle : circle.angle + MOUSE_PULL * 0.9 * (1-Math.pow(distance/700, 1/1)) * idealAngleDiff;
+    circle.angle = distance > PULL_RADIUS ? circle.angle : circle.angle + MOUSE_PULL * 0.9 * (1-Math.pow(distance/PULL_RADIUS, 1/1)) * idealAngleDiff;
     
     if (SHOW_METADATA) showMetadata(circle, previousIdealAngle, i);
   });
