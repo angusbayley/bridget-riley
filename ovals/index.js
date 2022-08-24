@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function(){
 const GRID_SIZE = {x: 10, y: 10};
 const MARGINS = {x: 120, y: 120};
 const DECAY_TIME = 0.8;
-const MOUSE_PULL = 0.5;
+const MOUSE_PULL = 0.2;
 const PULL_RADIUS = 2800;
 const SHOW_METADATA = false;
 let MOUSE_POS = {x: null, y: null};
