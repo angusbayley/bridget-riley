@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function(){
   main();
 });
 
-const N_CIRCLES = 10;
+const N_CIRCLES = 9;
 let MOUSE_POS = {x: null, y: null};
 const INITIAL_RADIUS = 6;
 const FINAL_RADIUS = 13;
@@ -15,15 +15,13 @@ const ANGLE_RESOLUTION = Math.PI/60;
 const SPIRAL_SCALE = 10;
 const INITIAL_SPIRAL_SPREAD = 0.1;
 const FINAL_SPIRAL_SPREAD = 0.55;
-const SPIRAL_WARP_RATE = 0.01;
-const SPIRAL_WARP_AMOUNT = 0.01;
-const SPIRAL_ROTATION = 1;
+const SPIRAL_WARP_RATE = 0.02;
+const SPIRAL_WARP_AMOUNT = 0.9;
 const CIRCLE_SIZE_RATIO = 2.1;
 const INITIAL_DELAY = 500; // ms
 let rotationalVelocity = INITIAL_ROTATIONAL_VELOCITY;
 let radiusScaleFactor = INITIAL_RADIUS;
 let spiralSpread = INITIAL_SPIRAL_SPREAD;
-let spiralRotationalOffset = 0;
 let circles;
 
 main = () => {
@@ -43,6 +41,7 @@ class Circle {
     this.radius = radius;
     this.radialShift = radialShift;
     this.inverse = inverse;
+    this.initialSpiralAngle = spiralAngle;
     this.spiralAngle = spiralAngle;
     this.opacity = INITIAL_OPACITY;
     this.setCoords(centerPoint);
@@ -96,11 +95,10 @@ draw = (ctx, circles, canvasDimensions, centerPoint, frameNo) => {
 
 updateCircles = (circles, centerPoint, frameNo) => {
   spiralSpread += 0.01 * (FINAL_SPIRAL_SPREAD - spiralSpread);
-  spiralRotationalOffset += SPIRAL_ROTATION * 0.001;
   circles.forEach((circle, i) => {
     rotationalVelocity += 0.01 * (FINAL_ROTATIONAL_VELOCITY - rotationalVelocity)
     circle.radialShift += 0.01 * rotationalVelocity
-    circle.spiralAngle += SPIRAL_WARP_AMOUNT * Math.cos(SPIRAL_WARP_RATE * frameNo + Math.PI/4);
+    circle.spiralAngle = circle.initialSpiralAngle + SPIRAL_WARP_AMOUNT * Math.cos(SPIRAL_WARP_RATE * frameNo + Math.PI/4);
     radiusScaleFactor = radiusScaleFactor + 0.01 * (FINAL_RADIUS - radiusScaleFactor);
     circle.calculateRadius();
     circle.opacity += 0.05 * (FINAL_OPACITY - circle.opacity);
